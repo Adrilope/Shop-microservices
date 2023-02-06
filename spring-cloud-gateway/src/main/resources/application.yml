@@ -1,0 +1,56 @@
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:      # circuitbreaker config name
+        sliding-window-size: 6
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 20s
+        permitted-number-of-calls-in-half-open-state: 4
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+    instances:
+      products:        # circuitbreaker name
+        base-config: default    # config name
+  timelimiter:
+    configs:
+      default:      # timelimiter config name
+        timeout-duration: 2s    # more than the sleep (5s) to simulate a slow call
+    instances:
+      products:
+        base-config: default
+
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: service-products
+        uri: lb://service-products        # lb = loadbalancer
+        predicates:          - Path=/api/products/**
+          # - Header=token,\d+
+          # - Header=Content-Type, application/json
+          # - Method=GET, POST
+          # - Query=color                 # queryKey, queryValue (optional)
+          # - Cookie=color, red  
+        filters:                          # modify the request
+          - name: CircuitBreaker
+            args:
+              name: products
+              statusCodes: 500            # error 500 handling (if this error occurs open the circuitbreaker)
+              fallbackUri: forward:/api/items/item/8/amount/4         # fallbackMethod (has to be another Path to avoid loops)          - StripPrefix=2                 # Path segments
+          # - name: ExampleCookie         # prefix or name of our filter: ExampleGatewayFilterFactory
+            # args:
+              # message: Hello my personal message
+              # cookieName: user
+              # cookieValue: Adrilope
+          - ExampleCookie=Hello my personal message, user, Adrilope   # same as above
+      - id: service-items
+        uri: lb://service-items
+        predicates:
+          - Path=/api/items/**
+        filters:
+          - StripPrefix=2
+          # some default gateway filters
+          - AddRequestHeader=token-request, 12345
+          - AddResponseHeader=token-response, 54321
+          - SetResponseHeader=Content-Type, text/plain
+          - AddRequestParameter=username, Adrilope
