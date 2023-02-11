@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.springboot.app.item.models.Product;
+import com.springboot.app.commons.models.entity.Product;
 
 @FeignClient(name = "service-products")		// component managed by spring, so it can be autowired 
 public interface ProductRestClient {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.springboot.app.item.clients.ProductRestClient;
 import com.springboot.app.item.models.Item;
-import com.springboot.app.item.models.Product;
+import com.springboot.app.commons.models.entity.Product;
 
 @Service("serviceFeign")
 // @Primary: if we have two services implementing an interface, wherever the interface is 
