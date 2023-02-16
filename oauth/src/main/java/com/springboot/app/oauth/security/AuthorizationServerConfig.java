@@ -1,5 +1,7 @@
 package com.springboot.app.oauth.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +12,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
@@ -22,6 +25,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 	
 	@Autowired
 	private AuthenticationManager authManager;
+	
+	@Autowired
+	private ExtraTokenInfo extraTokenInfo;
 
 	
 	@Override
@@ -43,9 +49,14 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+		// add the extra claims to accessTokenConverter()  (default info)
+		TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+		tokenEnhancerChain.setTokenEnhancers(Arrays.asList(extraTokenInfo, accessTokenConverter()));
+		
 		endpoints.authenticationManager(authManager)
 		.tokenStore(tokenStore())
-		.accessTokenConverter(accessTokenConverter());
+		.accessTokenConverter(accessTokenConverter())
+		.tokenEnhancer(tokenEnhancerChain);
 	}
 
 	@Bean
